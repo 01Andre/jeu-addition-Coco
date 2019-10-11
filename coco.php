@@ -1,14 +1,26 @@
 <?php
-
+welcome();
 $configuration = setConfiguration();
 $password = $configuration['password'];
 $gift = $configuration['gift'];
 $operations = $configuration['operations'];
-play($password, $gift, $operations);
+$operations = putPasswordInOperationsArray($password, $operations);
+cleanScreen();
+startGame($gift);
+play($operations);
+
+function welcome()
+{
+    echo "Jeu sur terminal. Pas de distraction, pas de superflu.\n
+    Le principe est simple: \n
+    -L'enfant doit trouver un mot de passe en résolvant des additions. Il vous communiquera le mot de passe, et gagnera une récompense (bisou, bonbon...)\n
+    -rentrez une récompense, choisissez un mot de passe (1 caractère par opération), et les nombres à additionner.\n
+    -Personnellement, je fais du no limit avec ma fille: les doigts, la tête, l'ardoise, ce qu'elle veut, sauf papa.\n\n\n\n";
+}
 
 function setConfiguration()
 {
-    $gift = readline('Choisir la récompense. exemple : un bonbon puis appuyer sur entrée : ');
+    $gift = readline('Choisir la récompense. exemple : "un bonbon" ; puis appuyer sur entrée : ');
     $password = readline('Saisir le mot de passe (un caractère = une opération à réaliser) : ');
     $operations = addQuestions(strlen($password));
     return ['gift'=> $gift,'password'=>$password, 'operations'=> $operations];
@@ -29,15 +41,20 @@ function addQuestions($numberOfQuestions){
 
 function askQuestion ($number, $secondNumber, $letter, $word){
     $result = $number + $secondNumber;
-    $resultProposed = readline("\n" . $number .' + ' . $secondNumber . ' = ');
+    $resultProposed = displayAddition($number, $secondNumber);
     while ($resultProposed != $result){
         echo "Non ! Concentre toi ! \n";
-        $resultProposed = readline($number .' + ' . $secondNumber . ' = ');
+        $resultProposed = displayAddition($number, $secondNumber);
     }
     echo "\n Super ! voici une lettre du mot de passe : " . $letter." \n";
     $word .= $letter;
     
     return $word;
+}
+
+function displayAddition($number, $secondNumber)
+{
+    return readline("\n" . $number .' + ' . $secondNumber . ' = ');
 }
 
 function cleanScreen()
@@ -56,8 +73,9 @@ function win($word)
 function startGame($gift)
 {
     echo "Attention ! Le jeu va commencer ! \n Tu dois trouver un mot. \n 
+    Ecris la solution de chaque addition, et appuie sur la touche Entrée.\n 
     A chaque fois que tu réussis à trouver le bon résultat de l'addition, je te donne une lettre. \n
-    Quand tu as le mot de passe, viens me le dire, et tu gagne " .$gift . " ! \n C'est parti ! \n";
+    Quand tu as le mot de passe, viens me le dire, et tu gagne $gift ! \n C'est parti ! \n";
 }
 
 function putPasswordInOperationsArray($password, $operations)
@@ -82,14 +100,8 @@ function launchOperations($operations)
     return $word;
 }
 
-function play($password, $gift, $operations)
+function play($operations)
 {
-    cleanScreen();
-    startGame($gift);
-    
-    $operations = putPasswordInOperationsArray($password, $operations);
-    
     $word = launchOperations($operations);
-    
     win($word);
 }
