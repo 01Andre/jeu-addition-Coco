@@ -9,16 +9,16 @@ cleanScreen();
 startGame($gift);
 play($operations);
 
-function welcome()
+function welcome():void
 {
     echo "Jeu sur terminal. Pas de distraction, pas de superflu.\n
     Le principe est simple: \n
     -L'enfant doit trouver un mot de passe en résolvant des additions. Il vous communiquera le mot de passe, et gagnera une récompense (bisou, bonbon...)\n
     -rentrez une récompense, choisissez un mot de passe (1 caractère par opération), et les nombres à additionner.\n
-    -Personnellement, je fais du no limit avec ma fille: les doigts, la tête, l'ardoise, ce qu'elle veut, sauf papa.\n\n\n\n";
+    \n\n\n\n";
 }
 
-function setConfiguration()
+function setConfiguration():array
 {
     $gift = readline('Choisir la récompense. exemple : "un bonbon" ; puis appuyer sur entrée : ');
     $password = readline('Saisir le mot de passe (un caractère = une opération à réaliser) : ');
@@ -26,20 +26,42 @@ function setConfiguration()
     return ['gift'=> $gift,'password'=>$password, 'operations'=> $operations];
 }
 
-function addQuestions($numberOfQuestions){
+function addNumber($numberOrder)
+{
+    $number = readline("Saisissez le $numberOrder nombre à additionner : ");
+    return $number;    
+}
+
+function addQuestions(int $numberOfQuestions):array
+{
+    $generateAutomaticsOperations = readline("pour générer automatiquement les opérations, tapez 'y' et validez. Pour les rentrer manuellement, tapez 'n' : ");
+
+    if ($generateAutomaticsOperations === 'y'){
+        $lowestInterval = readline('saisissez le nombre le plus bas auquel l\'enfant pourra être confronté : ');
+        $highestInterval = readline('saisissez le nombre le plus haut auquel l\'enfant pourra être confronté : ');
+        return generateAutomaticallyOperations($numberOfQuestions, $lowestInterval, $highestInterval);
+    }
     $questions = [];
-    $questions[0]['first number'] = readline('saisissez le nombre à additionner : ');
-    $questions[0]['second number']= readline('saisissez le second nombre à additionner : ');
-    for ($i =1 ; $i < $numberOfQuestions; $i++){
-        $number = $i+1;
-        echo "\n opération n° ". $number . " : \n";
-        $questions[$i]['first number'] = readline('saisissez le nombre à additionner : ');
-        $questions[$i]['second number']= readline('saisissez le second nombre à additionner : ');
+    for ($i =1 ; $i <= $numberOfQuestions; $i++){
+        echo "\n Opération n° ". $i . " : \n";
+        $questions[$i]['first number'] = addNumber('premier');
+        $questions[$i]['second number']= addNumber('second');
     }
     return $questions;
 }
 
-function askQuestion ($number, $secondNumber, $letter, $word){
+function generateAutomaticallyOperations(int $numberOfQuestions, int $lowestInterval, int $highestInterval):array
+{
+    $questions = [];
+    for ($i =1 ; $i <= $numberOfQuestions; $i++){
+        $questions[$i]['first number'] = rand($lowestInterval, $highestInterval);
+        $questions[$i]['second number']= rand($lowestInterval, $highestInterval);
+    }
+    return $questions;
+}
+
+function askQuestion ($number, $secondNumber, $letter, $word)
+{
     $result = $number + $secondNumber;
     $resultProposed = displayAddition($number, $secondNumber);
     while ($resultProposed != $result){
@@ -79,11 +101,12 @@ function startGame($gift)
 }
 
 function putPasswordInOperationsArray($password, $operations)
-{
+{    
     $passwordArray = str_split($password);
+ 
     foreach ($operations as $key => $operation)
     {
-        $operations[$key]['letter'] = $passwordArray[$key];
+        $operations[$key]['letter'] = $passwordArray[$key-1];
     }
     return $operations;
 }
@@ -92,7 +115,7 @@ function launchOperations($operations)
 {
     $word = '';
     foreach ($operations as $key => $operation){
-        if ($key > 1)
+        if ($key > 2)
         { echo " pour l'instant, le mot de passe est : ". $word ."\n" ;
         }
         $word = askQuestion($operation['first number'], $operation['second number'], $operation['letter'], $word);
